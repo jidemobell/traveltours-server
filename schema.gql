@@ -1,0 +1,98 @@
+# """
+# The User actually only has the `name` field. This concept is relevant when crafting privileges.
+# Internally, Fauna is creating extra indexes and collections to establish the many-to-many relations here. From a
+# querying perspective, this is irrelevant unless you need to write FQL. Generally, look to do it via the GraphQL API.
+# """
+
+
+type Query {
+    users: [User]
+}
+
+type User {
+    uuid: String
+    name: String
+    email: String
+    google_id: String
+    created_at: Date
+    updated_at: Date
+}
+
+type Package {
+    id: String
+    name: String
+    description: String
+    created_at: Date
+    updated_at: Date
+}
+
+# type User {
+#   name: String! @unique
+#   owns: [Class]! @relation(name: "owner_role")
+#   teaches: [Class]! @relation(name: "teacher_role")
+#   attends: [Class]! @relation(name: "student_role")
+#   assignments: [Assignment] @relation(name: "assignee")
+# }
+
+
+# """
+# Every doc in FQL has a unique `_id` field that isn't visible in the schema.
+# For Class, we use it as the link for routing purposes.
+# """
+
+type Class {
+  name: String!
+  invite: ID!
+  owner: User! @relation(name: "owner_role")
+  teachers: [User!]! @relation(name: "teacher_role")
+  students: [User] @relation(name: "student_role")
+  section: String
+  subject: String
+  room: String
+  streams: [Stream] @relation
+  assignments: [Assignment] @relation
+}
+
+"""
+Streams are basically another name for announcements.
+There can be multiple comments attached to a stream.
+"""
+type Stream {
+  message: String!
+  author: User!
+  class: Class!
+  comments: [Comment] @relation
+}
+
+type Comment {
+  message: String!
+  author: User!
+  stream: Stream!
+}
+
+type Assignment {
+  title: String!
+  text: String!
+  points: Int!
+  due: Date!
+  creator: User!
+  assignees: [User]! @relation(name: "assignee")
+  type: AssignmentType!
+  class: Class!
+  created: Time!
+  # _ts used for last edited timestamp
+  comments: [AssignmentComment] @relation
+  topic: String
+}
+
+enum AssignmentType {
+  ESSAY
+  SHORT_ANSWER
+  MULTIPLE_CHOICE
+}
+
+type AssignmentComment {
+  message: String!
+  author: User!
+  assignment: Assignment!
+}

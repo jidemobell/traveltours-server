@@ -1,0 +1,19 @@
+{
+  "type": "postgres",
+  "host": "ep-cold-base-a53m37xe.us-east-2.aws.neon.tech",
+  "port": 5432,
+  "username": "traveltours_owner",
+  "password": "BaZU9hmKqH8k",
+  "database": "traveltours",
+  "synchronize": true,
+  "logging": false,
+  "entities": [
+    "src/entity/**/*.ts"
+  ],
+  "migrations": [
+    "src/migration/**/*.ts"
+  ],
+  "subscribers": [
+    "src/subscriber/**/*.ts"
+  ]
+}

@@ -1,0 +1,62 @@
+query getUser($email: String!, $password: String) {
+  getUser(email:$email, password:$password) {
+    uuid
+    name
+    created_at
+    email
+  }
+}
+
+{
+  "email": "rest@me.me"
+}
+
+# +++++++++++
+
+query allUsers {
+  AllUsers{
+    name
+    email
+  }
+}
+
+# +++++++++++
+
+mutation createUser($google_id: String!, $password: String, $email: String) {
+  createUser(email: $email, google_id: $google_id, password: $password) {
+    uuid
+    email
+    google_id
+    created_at
+    updated_at
+  }
+}
+
+# +++++++++++
+query {
+  AllPackages {
+    id
+    name
+    description
+    created_at
+    updated_at
+  }
+}
+
+# +++++++++++
+
+query getPackage($id: String!) {
+  getPackage(id:$id) {
+    id
+    name
+    description
+    created_at
+    updated_at
+  }
+}
+
+{
+  "id": "04b6760a-7ee8-4634-9a27-05d15adf5a22"
+}
+
+# +++++++++++
