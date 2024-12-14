@@ -3,16 +3,19 @@ const { graphqlHTTP } = require('express-graphql');
 const { buildSchema } = require('graphql');
 const knex = require('knex')(require('./knexfile').development);
 
+// const { v4: uuidv4 } = require('uuid');
+
+
 const schema = buildSchema(`
   type Query {
     AllUsers: [User]
-    getUser(email: String): User
+    getUser(email: String, password: String): User
     AllPackages: [Package]
     getPackage(id: String): Package
   }
 
   type Mutation {
-    createUser(email: String!, name: String): User
+    createUser(email: String!, password: String!, google_id: String): User
     createUserWithEmail(email: String!): User
     addPackage(id: String): Package
   }
@@ -45,10 +48,11 @@ const root = {
     return await knex('packages').select('*');
   },
   getUser: async (value) => {
-    const { google_id, password } = value
+    const { email, password } = value
     // console.log('getting user', email)
     // console.log(knex('users').where('email',  email).select('*').toSQL())
-    const response =  await knex('users').where({"google_id":  google_id, "password": password }).select('*');
+    // console.log(uuid.toString())
+    const response =  await knex('users').where({"email":  email, "password": password }).select('*');
     console.log(response)
     return response[0]
   },
@@ -63,9 +67,9 @@ const root = {
      console.log(user)
      const { email, password, google_id } = user
      const response = await knex('users').insert({ email , password, google_id });
+     console.log(response)
      const { rowCount } = response;
      return rowCount
-
   },
   createUserWithEmail: async (user) => {
     // console.log(user)

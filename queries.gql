@@ -1,6 +1,7 @@
-query getUser($email: String!, $password: String) {
-  getUser(email:$email, password:$password) {
+query getUser($email: String!, $password: String!) {
+  getUser(email:$email, password: $password) {
     uuid
+    google_id
     name
     created_at
     email
@@ -8,7 +9,8 @@ query getUser($email: String!, $password: String) {
 }
 
 {
-  "email": "rest@me.me"
+  "email": "jide@me.me",
+  "password": "pooc1234"
 }
 
 # +++++++++++
