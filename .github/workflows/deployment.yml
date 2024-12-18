@@ -41,6 +41,11 @@ jobs:
         docker build -t "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" .
         docker tag "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" my-app:latest
 
+    #docker login to container registry
+    - name: docker login to container registry
+      run: |
+        docker login -u iambearer --password {{ BREARER_TOKEN }} icr.io
+
     # Push the container to IBM Container Registry
     - name: Push Docker image to IBM Container Registry
       run: |
