@@ -25,6 +25,7 @@ jobs:
     - name: Log in to IBM Container Registry
       run: |
         # ibmcloud cr login
+        ibmcloud cr login --client docker
         ibmcloud cr namespace-add "${{ secrets.IBM_CR_NAMESPACE }}" || true
 
     # Build the container
