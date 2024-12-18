@@ -20,6 +20,10 @@ jobs:
         curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
         ibmcloud config --check-version=false
         ibmcloud login --apikey "${{ secrets.IBM_CLOUD_API_KEY }}" -r "${{ secrets.IBM_REGION }}"
+    
+    # install ibm dependencies
+    - name: install ibm dependencies
+      uses: ibmcloud plugin install container-registry
 
     # Log in to IBM Container Registry
     - name: Log in to IBM Container Registry
