@@ -23,7 +23,9 @@ jobs:
     
     # install ibm dependencies
     - name: install ibm dependencies
-      uses: ibmcloud plugin install container-registry
+      run: |
+       ibmcloud plugin install container-registry
+
 
     # Log in to IBM Container Registry
     - name: Log in to IBM Container Registry
