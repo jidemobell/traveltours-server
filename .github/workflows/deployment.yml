@@ -37,6 +37,8 @@ jobs:
     - name: Push Docker image to IBM Container Registry
       run: |
         docker push "${{ secrets.IBM_REGION }}.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest"
+        docker push "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest"
+
 
     # Deploy to IBM Cloud Code Engine
     - name: Deploy to IBM Cloud Code Engine
