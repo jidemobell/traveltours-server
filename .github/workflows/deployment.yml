@@ -44,7 +44,7 @@ jobs:
     #docker login to container registry
     - name: docker login to container registry
       run: |
-        docker login -u iambearer -p {{ BREARER_TOKEN }} icr.io
+        docker login -u iambearer -p ${{ BREARER_TOKEN }} icr.io
 
     # Push the container to IBM Container Registry
     - name: Push Docker image to IBM Container Registry
