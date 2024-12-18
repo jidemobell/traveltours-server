@@ -37,7 +37,7 @@ jobs:
     - name: Push Docker image to IBM Container Registry
       run: |
         docker push "${{ secrets.IBM_REGION }}.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest"
-        docker push "private.us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest"
+        docker push "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest"
 
 
     # Deploy to IBM Cloud Code Engine
@@ -46,6 +46,6 @@ jobs:
         ibmcloud target -g Default  # Adjust resource group if needed
         ibmcloud ce project select --name "${{ secrets.CODE_ENGINE_PROJECT }}" --quiet
         ibmcloud ce application update --name "${{ secrets.IMAGE_NAME }}" \
-          --image "private.us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" || \
+          --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" || \
         ibmcloud ce application create --name "${{ secrets.IMAGE_NAME }}" \
-          --image "private.us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest"
+          --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest"
