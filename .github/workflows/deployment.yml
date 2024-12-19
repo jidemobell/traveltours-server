@@ -71,7 +71,7 @@ jobs:
     # Deploy to IBM Cloud Code Engine
     - name: Deploy to IBM Cloud Code Engine
       run: |
-        ibmcloud target -c {{ secrets.ACCOUNT_ID }} -r ${{ secrets.REGION_NAME }} -g Default
+        ibmcloud target -c ${{ secrets.ACCOUNT_ID }} -r ${{ secrets.REGION_NAME }} -g Default
         # ibmcloud target -r ${{ secrets.REGION_NAME }} -g Default
         # ibmcloud target -g Default  # Adjust resource group if needed
         ibmcloud ce project select --name "${{ secrets.CODE_ENGINE_PROJECT }}" --quiet
