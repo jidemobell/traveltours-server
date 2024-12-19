@@ -67,6 +67,11 @@ jobs:
       run: |
         docker push "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME_2 }}:latest"
 
+    - name: Verify image in registry
+      run: |
+        ibmcloud cr image-inspect "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest"
+        ibmcloud cr image-inspect "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME_2 }}:latest"
+
 
     # Deploy to IBM Cloud Code Engine
     - name: Deploy to IBM Cloud Code Engine
@@ -83,9 +88,9 @@ jobs:
         #   --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME_2 }}:latest"
 
 
-          ibmcloud ce application update --name "tourstravelserver" \
+          ibmcloud ce application update --name "tourstravelserver" --registry-secret my-reg-secret \
           --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" \
-          --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" || \
-        ibmcloud ce application create --name "tourstravelserver" \
+          --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME_2 }}:latest" || \
+        ibmcloud ce application create --name "tourstravelserver" --registry-secret my-reg-secret \
           --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" \
           --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME_2 }}:latest"
