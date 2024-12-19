@@ -40,18 +40,35 @@ jobs:
     - name: Build and tag Docker image
       run: |
         docker build -t "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" .
-        docker tag "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" my-app:latest
+        # docker tag "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" toursbackend:latest
+
+      
+    # Pull and push the official Redis image to ICR
+    # If you prefer, you can skip pushing Redis to ICR and just reference the official image directly.
+    - name: Prepare Redis Image
+      run: |
+        docker pull redis:latest
+        docker tag redis:latest icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME_2 }}:latest
+        # docker push us.icr.io/my-namespace/redis:latest
+        
 
     #docker login to container registry
     - name: docker login to container registry
       run: |
          docker login -u iamapikey --password ${{ secrets.DOCKER_IAM }} icr.io
 
-    # Push the container to IBM Container Registry
-    - name: Push Docker image to IBM Container Registry
+    # Push the node container to IBM Container Registry
+    - name: Push node image to IBM Container Registry
       run: |
         # docker push "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest"
         docker push "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest"
+
+    # Push the redis container to IBM Container Registry
+    - name: Push redis image to IBM Container Registry
+      run: |
+        # docker push "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest"
+        docker push redis:latest icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME_2 }}:latest
+        # docker push "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest"
 
 
     # Deploy to IBM Cloud Code Engine
@@ -59,7 +76,10 @@ jobs:
       run: |
         ibmcloud target -g Default  # Adjust resource group if needed
         ibmcloud ce project select --name "${{ secrets.CODE_ENGINE_PROJECT }}" --quiet
-        ibmcloud ce application update --name "${{ secrets.IMAGE_NAME }}" \
-          --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" || \
-        ibmcloud ce application create --name "${{ secrets.IMAGE_NAME }}" \
-          --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest"
+
+        ibmcloud ce application update --name "toursbackend" \
+          --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" \
+          --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME_2 }}:latest" || \
+        ibmcloud ce application create --name "toursbackend" \
+          --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" \
+          --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME_2 }}:latest"
