@@ -75,9 +75,17 @@ jobs:
         # ibmcloud target -r ${{ secrets.REGION_NAME }} -g Default
         ibmcloud ce project select --name ${{ secrets.CODE_ENGINE_PROJECT }} --quiet
 
-        ibmcloud ce application update --name "toursbackend" \
-          --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" \
-          --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME_2 }}:latest" || \
+        # ibmcloud ce application update --name "toursbackend" \
+        #   --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" \
+        #   --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME_2 }}:latest" || \
+        # ibmcloud ce application create --name "toursbackend" \
+        #   --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" \
+        #   --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME_2 }}:latest"
+
+
+          ibmcloud ce application update --name "toursbackend" \
+          # --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" \
+          --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" || \
         ibmcloud ce application create --name "toursbackend" \
-          --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" \
+          # --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" \
           --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME_2 }}:latest"
