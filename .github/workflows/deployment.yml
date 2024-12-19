@@ -60,15 +60,12 @@ jobs:
     # Push the node container to IBM Container Registry
     - name: Push node image to IBM Container Registry
       run: |
-        # docker push "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest"
         docker push "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest"
 
     # Push the redis container to IBM Container Registry
     - name: Push redis image to IBM Container Registry
       run: |
-        # docker push "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest"
-        docker push redis:latest icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME_2 }}:latest
-        # docker push "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest"
+        # docker push "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME_ }}:latest"
 
 
     # Deploy to IBM Cloud Code Engine
