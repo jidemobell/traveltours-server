@@ -25,6 +25,7 @@ jobs:
     - name: install ibm dependencies
       run: |
        ibmcloud plugin install container-registry
+       ibmcloud plugin install code-engine
 
 
     # Log in to IBM Container Registry

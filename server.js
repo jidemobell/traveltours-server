@@ -2,6 +2,11 @@ const express = require('express');
 const { graphqlHTTP } = require('express-graphql');
 const { buildSchema } = require('graphql');
 const knex = require('knex')(require('./knexfile').development);
+const redis = require('redis');
+
+//intialize redis
+const redisClient = redis.createClient({ url: 'redis://localhost:6379' });
+await redisClient.connect();
 
 // const { v4: uuidv4 } = require('uuid');
 
@@ -40,13 +45,29 @@ const schema = buildSchema(`
 }
 `);
 
+
+
 const root = {
   AllUsers: async () => {
     return await knex('users').select('*');
   },
   AllPackages: async () => {
     // console.log(knex('packages').select('*').toSQL())
-    return await knex('packages').select('*');
+    let result = null
+    const cacheKey = 'allPackages';
+    const cachedPackages = await redisClient.get(cacheKey)
+
+    if(cachedPackages){
+      return JSON.parse(cachedPackages)
+    }
+
+    result = await knex('packages').select('*');
+
+    await redisClient.set(cacheKey, JSON.stringify(result), {
+      EX: 604800 // 1 week
+    });
+
+    return result
   },
   getUser: async (value) => {
     const { email, password } = value
@@ -54,18 +75,15 @@ const root = {
     // console.log(knex('users').where('email',  email).select('*').toSQL())
     // console.log(uuid.toString())
     const response =  await knex('users').where({"email":  email, "password": password }).select('*');
-    console.log(response)
     return response[0]
   },
   getPackage: async (value) => {
     const { id } = value
-    console.log( value)
     console.log(knex('packages').where('uuid',  id).select('*').toSQL())
     const response =  await knex('packages').where('id',  id).select('*');
     return response[0]
   },
   createUser: async (user) => {
-     console.log(user)
      const { email, password, google_id } = user
      const response = await knex('users').insert({ email , password, google_id });
      console.log(response)
