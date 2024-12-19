@@ -71,7 +71,7 @@ jobs:
     # Deploy to IBM Cloud Code Engine
     - name: Deploy to IBM Cloud Code Engine
       run: |
-        ibmcloud target -g olajide  # Adjust resource group if needed
+        ibmcloud target -g Default  # Adjust resource group if needed
         ibmcloud ce project select --name "${{ secrets.CODE_ENGINE_PROJECT }}" --quiet
 
         ibmcloud ce application update --name "toursbackend" \
