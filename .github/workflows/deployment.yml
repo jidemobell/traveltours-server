@@ -77,20 +77,11 @@ jobs:
     - name: Deploy to IBM Cloud Code Engine
       run: |
         ibmcloud target -c ${{ secrets.ACCOUNT_ID }} -r ${{ secrets.REGION_NAME }} -g Default
-        # ibmcloud target -r ${{ secrets.REGION_NAME }} -g Default
         ibmcloud ce project select --name ${{ secrets.CODE_ENGINE_PROJECT }} --quiet
 
-        # ibmcloud ce application update --name "toursbackend" \
-        #   --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" \
-        #   --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME_2 }}:latest" || \
-        # ibmcloud ce application create --name "toursbackend" \
-        #   --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" \
-        #   --image "icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME_2 }}:latest"
-
-
-          ibmcloud ce application update --name "tourstravelserver" --registry-secret my-us-reg-secret \
-          --image "us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" --port 4000 \
-          --image "us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME_2 }}:latest" --port 6379 || \
+        ibmcloud ce application update --name "tourstravelserver" --registry-secret my-us-reg-secret \
+        --image "us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" --port 4000 \
+        --image "us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME_2 }}:latest" --port 6379 || \
         ibmcloud ce application create --name "tourstravelserver" --registry-secret my-us-reg-secret \
-          --image "us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" --port 4000 \
-          --image "us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME_2 }}:latest" --port 6379
+        --image "us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" --port 4000 \
+        --image "us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME_2 }}:latest" --port 6379
