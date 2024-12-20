@@ -1,14 +1,8 @@
 const express = require('express');
 const { graphqlHTTP } = require('express-graphql');
 const { buildSchema } = require('graphql');
+const { redisConnect } = require('./utils');
 const knex = require('knex')(require('./knexfile').development);
-const redis = require('redis');
-
-//intialize redis
-const redisClient = redis.createClient({ url: 'redis://localhost:6379' });
-await redisClient.connect();
-
-// const { v4: uuidv4 } = require('uuid');
 
 
 const schema = buildSchema(`
@@ -54,18 +48,18 @@ const root = {
   AllPackages: async () => {
     // console.log(knex('packages').select('*').toSQL())
     let result = null
-    // const cacheKey = 'allPackages';
-    // const cachedPackages = await redisClient.get(cacheKey)
+    const cacheKey = 'allPackages';
+    const cachedPackages = await redisConnect().get(cacheKey)
 
-    // if(cachedPackages){
-    //   return JSON.parse(cachedPackages)
-    // }
+    if(cachedPackages){
+      return JSON.parse(cachedPackages)
+    }
 
     result = await knex('packages').select('*');
 
-    // await redisClient.set(cacheKey, JSON.stringify(result), {
-    //   EX: 604800 // 1 week
-    // });
+    await redisConnect().set(cacheKey, JSON.stringify(result), {
+      EX: 604800 // 1 week
+    });
 
     return result
   },
