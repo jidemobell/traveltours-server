@@ -54,18 +54,18 @@ const root = {
   AllPackages: async () => {
     // console.log(knex('packages').select('*').toSQL())
     let result = null
-    const cacheKey = 'allPackages';
-    const cachedPackages = await redisClient.get(cacheKey)
+    // const cacheKey = 'allPackages';
+    // const cachedPackages = await redisClient.get(cacheKey)
 
-    if(cachedPackages){
-      return JSON.parse(cachedPackages)
-    }
+    // if(cachedPackages){
+    //   return JSON.parse(cachedPackages)
+    // }
 
     result = await knex('packages').select('*');
 
-    await redisClient.set(cacheKey, JSON.stringify(result), {
-      EX: 604800 // 1 week
-    });
+    // await redisClient.set(cacheKey, JSON.stringify(result), {
+    //   EX: 604800 // 1 week
+    // });
 
     return result
   },
