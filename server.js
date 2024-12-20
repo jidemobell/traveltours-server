@@ -1,7 +1,7 @@
 const express = require('express');
 const { graphqlHTTP } = require('express-graphql');
 const { buildSchema } = require('graphql');
-const { redisConnect } = require('./utils');
+const redisConnect = require('./utils');
 const knex = require('knex')(require('./knexfile').development);
 
 
