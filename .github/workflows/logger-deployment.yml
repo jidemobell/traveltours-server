@@ -50,6 +50,9 @@ jobs:
 
       - name: Deploy Elastic and Kibana to Code Engine
         run: |
+          ibmcloud target -c ${{ secrets.ACCOUNT_ID }} -r ${{ secrets.REGION_NAME }} -g Default
+          ibmcloud ce project select --name ${{ secrets.CODE_ENGINE_PROJECT }} --quiet
+
           ibmcloud ce application update --name "tourstravelserver" \
             --image ghcr.io/${{ secrets.GHCR_USERNAME }}/elastic-image:8.10.1 \
             --registry-secret ghcr-registry-secret \
