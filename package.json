@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@logdna/logger": "^2.6.11",
     "dotenv": "^16.4.7",
     "express": "^4.19.2",
     "express-graphql": "^0.12.0",

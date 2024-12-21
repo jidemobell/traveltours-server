@@ -21,6 +21,8 @@ const loggerHTTP =  pinoHttp({
   }, 
 })
 
+
+
 const schema = buildSchema(`
   type Query {
     AllUsers: [User]
