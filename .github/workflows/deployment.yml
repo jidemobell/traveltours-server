@@ -54,9 +54,9 @@ jobs:
     # Pull and push the official elastic image to ICR
     - name: pull and tag elasticsearch and kibana image for code engine
       run: |
-        docker pull docker.elastic.co/elasticsearch/elasticsearch-wolfi:8.17.0
+        docker pull docker.elastic.co/elasticsearch/elasticsearch:8.17.0
         docker pull docker.elastic.co/kibana/kibana:8.17.0
-        docker tag  docker.elastic.co/elasticsearch/elasticsearch-wolfi:8.17.0 us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/elasticsearch:8.17.0
+        docker tag  docker.elastic.co/elasticsearch/elasticsearch:8.17.0 us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/elasticsearch:8.17.0
         docker tag  docker.elastic.co/kibana/kibana:8.17.0  us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/kibana:8.17.0
 
     #docker login to container registry
@@ -91,22 +91,22 @@ jobs:
         ibmcloud ce application update --name "tourstravelserver" --registry-secret my-us-reg-secret \
         --image "us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" \
         --port 4000 \
-        --env REDIS_PASSWORD=${{secrets.REDIS_PASSWORD}} --env LOG_LEVEL=${{ secrets.LOG_LEVEL }} 
+        --env REDIS_PASSWORD=${{secrets.REDIS_PASSWORD}} --env LOG_LEVEL=${{ secrets.LOG_LEVEL }} \
         --image us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/kibana:8.17.0 \
         --env discovery.type=single-node \ 
         --env xpack.security.enabled=false \
-        --port 9200 
+        --port 9200 \
         --image us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/kibana:8.17.0 \
         --env ELASTICSEARCH_HOSTS=http://<elasticsearch-service-url>:9200 \
         --port 5601 || \
         ibmcloud ce application create --name "tourstravelserver" --registry-secret my-us-reg-secret \
         --image "us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" \
         --port 4000 \
-        --env REDIS_PASSWORD=${{secrets.REDIS_PASSWORD}} --env LOG_LEVEL=${{ secrets.LOG_LEVEL }} 
+        --env REDIS_PASSWORD=${{secrets.REDIS_PASSWORD}} --env LOG_LEVEL=${{ secrets.LOG_LEVEL }} \
         --image us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/kibana:8.17.0 \
         --env discovery.type=single-node \ 
         --env xpack.security.enabled=false \
-        --port 9200 
+        --port 9200 \
         --image us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/kibana:8.17.0 \
         --env ELASTICSEARCH_HOSTS=http://<elasticsearch-service-url>:9200 \
         --port 5601 
