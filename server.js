@@ -1,7 +1,7 @@
 const express = require('express');
 const { graphqlHTTP } = require('express-graphql');
 const { buildSchema } = require('graphql');
-const redisConnect = require('./utils');
+const getClient = require('./utils');
 const knex = require('knex')(require('./knexfile').development);
 
 
@@ -47,20 +47,27 @@ const root = {
   },
   AllPackages: async () => {
     // console.log(knex('packages').select('*').toSQL())
+    const redisClient = await getClient();
     let result = null
-    const cacheKey = 'allPackages';
-    const cachedPackages = await redisConnect().get(cacheKey)
+    try {
+      const cacheKey = 'allPackages';
+      const cachedPackages = await redisClient.get(cacheKey)
 
-    if(cachedPackages){
-      return JSON.parse(cachedPackages)
+      if(cachedPackages){
+        return JSON.parse(cachedPackages)
+      }
+
+      result = await knex('packages').select('*');
+
+      await redisClient.set(cacheKey, JSON.stringify(result), {
+        EX: 604800 // 1 week
+      });
+    } catch (error) {
+      // console.error("error at all packages: " + error)
+      throw error
     }
 
-    result = await knex('packages').select('*');
-
-    await redisConnect().set(cacheKey, JSON.stringify(result), {
-      EX: 604800 // 1 week
-    });
-
+    await redisClient.disconnect()
     return result
   },
   getUser: async (value) => {
@@ -73,14 +80,14 @@ const root = {
   },
   getPackage: async (value) => {
     const { id } = value
-    console.log(knex('packages').where('uuid',  id).select('*').toSQL())
+    // console.log(knex('packages').where('uuid',  id).select('*').toSQL())
     const response =  await knex('packages').where('id',  id).select('*');
     return response[0]
   },
   createUser: async (user) => {
      const { email, password, google_id } = user
      const response = await knex('users').insert({ email , password, google_id });
-     console.log(response)
+    //  console.log(response)
      const { rowCount } = response;
      return rowCount
   },
@@ -99,5 +106,14 @@ app.use('/graphql', graphqlHTTP({
   rootValue: root,
   graphiql: true,
 }));
+
+
+process.on('SIGINT', async () => {
+  if (client) {
+    await client.disconnect();
+    // console.log('Redis client disconnected');
+    process.exit(0);
+  }
+});
 
 app.listen(4000, () => console.log('GraphQL server running on ibm cloud'));
