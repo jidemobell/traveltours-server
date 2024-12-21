@@ -2,8 +2,24 @@ const express = require('express');
 const { graphqlHTTP } = require('express-graphql');
 const { buildSchema } = require('graphql');
 const getClient = require('./utils');
+const logger = require('./logger');
+const pinoHttp = require('pino-http');
+// const { default: PinoHttp } = require('pino-http');
 const knex = require('knex')(require('./knexfile').development);
 
+const loggerHTTP =  pinoHttp({ 
+  level: process.env.LOG_LEVEL,
+  customLogLevel: (req, res, err) => {
+    if (err) {
+      return 'error'; // Log errors only at 'error' level
+    }
+    return 'info'; // Default for other requests
+  },
+  serializers: {
+    req: () => undefined, // Exclude `req` from logs
+    res: () => undefined, // Exclude `res` from logs
+  }, 
+})
 
 const schema = buildSchema(`
   type Query {
@@ -63,7 +79,7 @@ const root = {
         EX: 604800 // 1 week
       });
     } catch (error) {
-      // console.error("error at all packages: " + error)
+      logger.error("error at all packages: " + error)
       throw error
     }
 
@@ -101,19 +117,46 @@ const root = {
 };
 
 const app = express();
-app.use('/graphql', graphqlHTTP({
-  schema: schema,
-  rootValue: root,
-  graphiql: true,
-}));
+
+app.use(loggerHTTP)
+
+// app.use('/graphql', graphqlHTTP({
+//   schema: schema,
+//   rootValue: root,
+//   graphiql: true,
+// }));
+
+app.use('/graphql', (req, res, next) => {
+  const { query, variables, operationName } = req.body || {};
+
+  logger.info({
+    query,
+    variables,
+    operationName,
+  }, 'Incoming GraphQL request');
+
+  return graphqlHTTP({
+    schema: schema,
+    rootValue: root,
+    graphiql: true,
+    customFormatErrorFn: (error) => {
+      logger.error({
+        message: error.message,
+        locations: error.locations,
+        path: error.path,
+      }, 'GraphQL error occurred');
+      return error;
+    }
+  })(req, res, next);
+});
 
 
 process.on('SIGINT', async () => {
   if (client) {
     await client.disconnect();
-    // console.log('Redis client disconnected');
+    logger.fatal('Redis client disconnected on system termination');
     process.exit(0);
   }
 });
 
-app.listen(4000, () => console.log('GraphQL server running on ibm cloud'));
+app.listen(4000, () => logger.warn('GraphQL server running on ibm cloud'));
