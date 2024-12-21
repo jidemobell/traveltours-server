@@ -1,0 +1,76 @@
+name: Deploy to IBM Code Engine
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+
+      - name: Pull Elastic and Kibana Images
+        run: |
+          docker pull docker.elastic.co/elasticsearch/elasticsearch:8.10.1
+          docker pull docker.elastic.co/kibana/kibana:8.10.1
+
+      - name: Tag and Push to GHCR
+        run: |
+          docker tag docker.elastic.co/elasticsearch/elasticsearch:8.10.1 \
+            ghcr.io/${{ secrets.GHCR_USERNAME }}/elastic-image:8.10.1
+          docker tag docker.elastic.co/kibana/kibana:8.10.1 \
+            ghcr.io/${{ secrets.GHCR_USERNAME }}/kibana-image:8.10.1
+          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/elastic-image:8.10.1
+          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/kibana-image:8.10.1
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - name: Install IBM Cloud CLI
+        run: |
+          curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
+          ibmcloud plugin install code-engine -f
+
+      - name: Log in to IBM Cloud
+        env:
+          IBM_CLOUD_API_KEY: ${{ secrets.IBM_CLOUD_API_KEY }}
+        run: ibmcloud login --apikey $IBM_CLOUD_API_KEY
+
+      - name: Create IBM Code Engine Registry Secret
+        run: |
+          ibmcloud ce registry create --name ghcr-registry-secret \
+            --server ghcr.io \
+            --username ${{ secrets.GHCR_USERNAME }} \
+            --password ${{ secrets.GHCR_TOKEN }}
+
+      - name: Deploy Elastic and Kibana to Code Engine
+        run: |
+          ibmcloud ce application update --name "tourstravelserver" \
+            --image ghcr.io/${{ secrets.GHCR_USERNAME }}/elastic-image:8.10.1 \
+            --registry-secret ghcr-registry-secret \
+            --cpu 1 \
+            --memory 4G \
+            --env discovery.type=single-node \
+            --env xpack.security.enabled=false \
+            --port 9200 \
+            --image ghcr.io/${{ secrets.GHCR_USERNAME }}/kibana-image:8.10.1 \
+            --registry-secret ghcr-registry-secret \
+            --cpu 1 --memory 2G --env ELASTICSEARCH_HOSTS=http://elastic-app:9200 \
+            --port 5601 || \
+          ibmcloud ce application create --name "tourstravelserver" \
+            --image ghcr.io/${{ secrets.GHCR_USERNAME }}/elastic-image:8.10.1 \
+            --registry-secret ghcr-registry-secret \
+            --cpu 1 \
+            --memory 4G \
+            --env discovery.type=single-node \
+            --env xpack.security.enabled=false \
+            --port 9200 \
+            --image ghcr.io/${{ secrets.GHCR_USERNAME }}/kibana-image:8.10.1 \
+            --registry-secret ghcr-registry-secret \
+            --cpu 1 --memory 2G --env ELASTICSEARCH_HOSTS=http://elastic-app:9200 \
+            --port 5601
