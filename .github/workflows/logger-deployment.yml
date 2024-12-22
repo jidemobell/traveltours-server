@@ -54,10 +54,10 @@ jobs:
           ibmcloud ce project select --name ${{ secrets.CODE_ENGINE_PROJECT }} --quiet
 
 
-          ibmcloud ce registry create --name ghcr-registry-secret \
-            --server ghcr.io \
-            --username ${{ secrets.GHCR_USERNAME }} \
-            --password ${{ secrets.GHCR_TOKEN }}
+          # ibmcloud ce registry create --name ghcr-registry-secret \
+          #   --server ghcr.io \
+          #   --username ${{ secrets.GHCR_USERNAME }} \
+          #   --password ${{ secrets.GHCR_TOKEN }}
 
           ibmcloud ce application update --name "tourstravelserver" \
             --image ghcr.io/${{ secrets.GHCR_USERNAME }}/elastic-image:8.10.1 \
