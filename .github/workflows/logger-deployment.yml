@@ -45,14 +45,6 @@ jobs:
           ibmcloud login --apikey "${{ secrets.IBM_CLOUD_API_KEY }}" -r "${{ secrets.IBM_REGION }}"
           # ibmcloud target -g Default
 
-      - name: Create IBM Code Engine Registry Secret
-        run: |
-          # ibmcloud target -g Default
-          # ibmcloud ce registry create --name ghcr-registry-secret \
-          #   --server ghcr.io \
-          #   --username ${{ secrets.GHCR_USERNAME }} \
-          #   --password ${{ secrets.GHCR_TOKEN }}
-
       - name: Deploy Elastic and Kibana to Code Engine
         run: |
           ibmcloud target -c ${{ secrets.ACCOUNT_ID }} -r ${{ secrets.REGION_NAME }} -g Default
