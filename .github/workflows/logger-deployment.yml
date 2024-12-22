@@ -39,7 +39,10 @@ jobs:
       - name: Log in to IBM Cloud
         env:
           IBM_CLOUD_API_KEY: ${{ secrets.IBM_CLOUD_API_KEY }}
-        run: ibmcloud login --apikey $IBM_CLOUD_API_KEY
+        run: |
+          # ibmcloud login --apikey $IBM_CLOUD_API_KEY
+          ibmcloud config --check-version=false
+          ibmcloud login --apikey "${{ secrets.IBM_CLOUD_API_KEY }}" -r "${{ secrets.IBM_REGION }}"
 
       - name: Create IBM Code Engine Registry Secret
         run: |
@@ -50,10 +53,10 @@ jobs:
 
       - name: Deploy Elastic and Kibana to Code Engine
         run: |
-          # ibmcloud target -c ${{ secrets.ACCOUNT_ID }} -r ${{ secrets.REGION_NAME }} -g Default
-          ibmcloud target -g Default
-          ibmcloud target -r us-east
-          ibmcloud target -c ${{ secrets.ACCOUNT_ID }}
+          ibmcloud target -c ${{ secrets.ACCOUNT_ID }} -r ${{ secrets.REGION_NAME }} -g Default
+          # ibmcloud target -g Default
+          # ibmcloud target -r us-east
+          # ibmcloud target -c ${{ secrets.ACCOUNT_ID }}
           ibmcloud ce project select --name ${{ secrets.CODE_ENGINE_PROJECT }} --quiet
 
           ibmcloud ce application update --name "tourstravelserver" \
