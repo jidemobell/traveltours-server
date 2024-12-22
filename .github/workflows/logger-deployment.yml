@@ -43,15 +43,15 @@ jobs:
           # ibmcloud login --apikey $IBM_CLOUD_API_KEY
           ibmcloud config --check-version=false
           ibmcloud login --apikey "${{ secrets.IBM_CLOUD_API_KEY }}" -r "${{ secrets.IBM_REGION }}"
-          ibmcloud target -g Default
+          # ibmcloud target -g Default
 
       - name: Create IBM Code Engine Registry Secret
         run: |
           # ibmcloud target -g Default
-          ibmcloud ce registry create --name ghcr-registry-secret \
-            --server ghcr.io \
-            --username ${{ secrets.GHCR_USERNAME }} \
-            --password ${{ secrets.GHCR_TOKEN }}
+          # ibmcloud ce registry create --name ghcr-registry-secret \
+          #   --server ghcr.io \
+          #   --username ${{ secrets.GHCR_USERNAME }} \
+          #   --password ${{ secrets.GHCR_TOKEN }}
 
       - name: Deploy Elastic and Kibana to Code Engine
         run: |
@@ -60,6 +60,12 @@ jobs:
           # ibmcloud target -r us-east
           # ibmcloud target -c ${{ secrets.ACCOUNT_ID }}
           ibmcloud ce project select --name ${{ secrets.CODE_ENGINE_PROJECT }} --quiet
+
+
+          ibmcloud ce registry create --name ghcr-registry-secret \
+            --server ghcr.io \
+            --username ${{ secrets.GHCR_USERNAME }} \
+            --password ${{ secrets.GHCR_TOKEN }}
 
           ibmcloud ce application update --name "tourstravelserver" \
             --image ghcr.io/${{ secrets.GHCR_USERNAME }}/elastic-image:8.10.1 \
