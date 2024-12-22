@@ -50,7 +50,10 @@ jobs:
 
       - name: Deploy Elastic and Kibana to Code Engine
         run: |
-          ibmcloud target -c ${{ secrets.ACCOUNT_ID }} -r ${{ secrets.REGION_NAME }} -g Default
+          # ibmcloud target -c ${{ secrets.ACCOUNT_ID }} -r ${{ secrets.REGION_NAME }} -g Default
+          ibmcloud target -g Default
+          ibmcloud target -r us-east
+          ibmcloud target -c ${{ secrets.ACCOUNT_ID }}
           ibmcloud ce project select --name ${{ secrets.CODE_ENGINE_PROJECT }} --quiet
 
           ibmcloud ce application update --name "tourstravelserver" \
