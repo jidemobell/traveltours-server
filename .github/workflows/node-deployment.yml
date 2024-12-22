@@ -1,11 +1,11 @@
 name: Deploy to IBM Cloud Code Engine
 
-on:
-  push:
-    branches:
-      - main  # Change to your default branch name if necessary
 # on:
-#   workflow_dispatch:
+#   push:
+#     branches:
+#       - main  # Change to your default branch name if necessary
+on:
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
