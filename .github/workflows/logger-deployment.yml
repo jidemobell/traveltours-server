@@ -43,9 +43,11 @@ jobs:
           # ibmcloud login --apikey $IBM_CLOUD_API_KEY
           ibmcloud config --check-version=false
           ibmcloud login --apikey "${{ secrets.IBM_CLOUD_API_KEY }}" -r "${{ secrets.IBM_REGION }}"
+          ibmcloud target -g Default
 
       - name: Create IBM Code Engine Registry Secret
         run: |
+          # ibmcloud target -g Default
           ibmcloud ce registry create --name ghcr-registry-secret \
             --server ghcr.io \
             --username ${{ secrets.GHCR_USERNAME }} \
