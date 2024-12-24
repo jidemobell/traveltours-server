@@ -87,7 +87,7 @@ jobs:
     # Deploy to IBM Cloud Code Engine
     - name: Deploy to IBM Cloud Code Engine
       run: |
-        ibmcloud target -c ${{ secrets.ACCOUNT_ID }} -r ${{ secrets.REGION_NAME }} -g Default
+        ibmcloud target -c ${{ secrets.ACCOUNT_ID }} -r ${{ secrets.REGION_NAME }} -g default
         ibmcloud ce project select --name ${{ secrets.CODE_ENGINE_PROJECT }} --quiet
 
         ibmcloud ce application update --name "tourstravelserver-24_12_24" --registry-secret my-us-reg-secret \
