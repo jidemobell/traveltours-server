@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { transports, createLogger,format  } = require("winston");
 const { ElasticsearchTransport } = require('winston-elasticsearch');
 const { axios } = require("axios");
@@ -5,7 +6,7 @@ const { Client } = require('@elastic/elasticsearch');
 
 // Configure Elasticsearch client
 const esClient = new Client({
-  node: 'http://34.57.149.149:9200', // Update with your Elasticsearch URL
+  node: process.env.ELASTIC_SEARCH_HOST, // Update with your Elasticsearch URL
 });
 
 // Configure Elasticsearch transport
