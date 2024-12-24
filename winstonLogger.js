@@ -1,7 +1,6 @@
 require('dotenv').config();
 const { transports, createLogger,format  } = require("winston");
 const { ElasticsearchTransport } = require('winston-elasticsearch');
-const { axios } = require("axios");
 const { Client } = require('@elastic/elasticsearch');
 
 // Configure Elasticsearch client
