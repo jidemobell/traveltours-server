@@ -92,12 +92,12 @@ jobs:
         --image "us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" \
         --port 4000 \
         --env REDIS_PASSWORD=${{secrets.REDIS_PASSWORD}} --env LOG_LEVEL=${{ secrets.LOG_LEVEL }} \
-        --env ELASTIC_SEARCH_HOST={{ secrets.ELASTIC_SEARCH_HOST }}  || \
+        --env ELASTIC_SEARCH_HOST=${{ secrets.ELASTIC_SEARCH_HOST }}  || \
         ibmcloud ce application create --name "tourstravelserver" --registry-secret my-us-reg-secret \
         --image "us.icr.io/${{ secrets.IBM_CR_NAMESPACE }}/${{ secrets.IMAGE_NAME }}:latest" \
         --port 4000 \
         --env REDIS_PASSWORD=${{secrets.REDIS_PASSWORD}} --env LOG_LEVEL=${{ secrets.LOG_LEVEL }} \
-        --env ELASTIC_SEARCH_HOST={{ secrets.ELASTIC_SEARCH_HOST }} 
+        --env ELASTIC_SEARCH_HOST=${{ secrets.ELASTIC_SEARCH_HOST }} 
 
         
         # ibmcloud target -c ${{ secrets.ACCOUNT_ID }} -r ${{ secrets.REGION_NAME }} -g Default
