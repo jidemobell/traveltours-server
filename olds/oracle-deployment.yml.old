@@ -1,0 +1,37 @@
+name: Deploy to Oracle Container Instance
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up OCI CLI
+        run: |
+          curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh | bash
+          echo "${{ secrets.OCI_CONFIG }}" > ~/.oci/config
+          echo "${{ secrets.OCI_PRIVATE_KEY }}" > ~/.oci/oci_api_key.pem
+          chmod 600 ~/.oci/oci_api_key.pem
+
+      - name: Log in to Oracle Container Registry
+        run: |
+          docker login -u ${{ secrets.OCI_USERNAME }} -p ${{ secrets.OCI_AUTH_TOKEN }} ${{ secrets.OCI_REGION }}.ocir.io
+
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t ${{ secrets.OCI_REGION }}.ocir.io/${{ secrets.OCI_NAMESPACE }}/my-app:latest .
+          docker push ${{ secrets.OCI_REGION }}.ocir.io/${{ secrets.OCI_NAMESPACE }}/my-app:latest
+
+      - name: Deploy Container Instance
+        run: |
+          oci compute instance launch \
+            --availability-domain "${{ secrets.OCI_AVAILABILITY_DOMAIN }}" \
+            --compartment-id "${{ secrets.OCI_COMPARTMENT_ID }}" \
+            --shape "VM.Standard.E2.1.Micro" \
+            --image-id "${{ secrets.OCI_IMAGE_ID }}" \
+            --metadata '{"user_data": "#!/bin/bash\ndocker run -d -p 80:80 ${{ secrets.OCI_REGION }}.ocir.io/${{ secrets.OCI_NAMESPACE }}/my-app:latest"}'

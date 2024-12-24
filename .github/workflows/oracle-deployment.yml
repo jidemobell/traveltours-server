@@ -1,37 +1,125 @@
-name: Deploy to Oracle Container Instance
+name: Deploy to Oracle Cloud
 
 on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Set up OCI CLI
-        run: |
-          curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh | bash
-          echo "${{ secrets.OCI_CONFIG }}" > ~/.oci/config
-          echo "${{ secrets.OCI_PRIVATE_KEY }}" > ~/.oci/oci_api_key.pem
-          chmod 600 ~/.oci/oci_api_key.pem
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
 
-      - name: Log in to Oracle Container Registry
+      - name: Pull Elastic and Kibana Images
         run: |
-          docker login -u ${{ secrets.OCI_USERNAME }} -p ${{ secrets.OCI_AUTH_TOKEN }} ${{ secrets.OCI_REGION }}.ocir.io
+          docker pull docker.elastic.co/elasticsearch/elasticsearch:8.10.1
+          docker pull docker.elastic.co/kibana/kibana:8.10.1
 
-      - name: Build and Push Docker Image
+      - name: Tag and Push to GHCR
         run: |
-          docker build -t ${{ secrets.OCI_REGION }}.ocir.io/${{ secrets.OCI_NAMESPACE }}/my-app:latest .
-          docker push ${{ secrets.OCI_REGION }}.ocir.io/${{ secrets.OCI_NAMESPACE }}/my-app:latest
+          docker tag docker.elastic.co/elasticsearch/elasticsearch:8.10.1 \
+            ghcr.io/${{ secrets.GHCR_USERNAME }}/elastic-image:8.10.1
+          docker tag docker.elastic.co/kibana/kibana:8.10.1 \
+            ghcr.io/${{ secrets.GHCR_USERNAME }}/kibana-image:8.10.1
+          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/elastic-image:8.10.1
+          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/kibana-image:8.10.1
 
-      - name: Deploy Container Instance
+      - name: Retag and Push to Oracle Container Registry
         run: |
-          oci compute instance launch \
-            --availability-domain "${{ secrets.OCI_AVAILABILITY_DOMAIN }}" \
-            --compartment-id "${{ secrets.OCI_COMPARTMENT_ID }}" \
-            --shape "VM.Standard.E2.1.Micro" \
-            --image-id "${{ secrets.OCI_IMAGE_ID }}" \
-            --metadata '{"user_data": "#!/bin/bash\ndocker run -d -p 80:80 ${{ secrets.OCI_REGION }}.ocir.io/${{ secrets.OCI_NAMESPACE }}/my-app:latest"}'
+          docker tag ghcr.io/${{ secrets.GHCR_USERNAME }}/elastic-image:8.10.1 \
+            ${OCR_REGION}/${{ secrets.ORACLE_NAMESPACE }}/elastic-image:8.10.1
+          docker tag ghcr.io/${{ secrets.GHCR_USERNAME }}/kibana-image:8.10.1 \
+            ${OCR_REGION}/${{ secrets.ORACLE_NAMESPACE }}/kibana-image:8.10.1
+          echo "${{ secrets.ORACLE_PASSWORD }}" | docker login ${OCR_REGION} -u ${{ secrets.ORACLE_USERNAME }} --password-stdin
+          docker push ${OCR_REGION}/${{ secrets.ORACLE_NAMESPACE }}/elastic-image:8.10.1
+          docker push ${OCR_REGION}/${{ secrets.ORACLE_NAMESPACE }}/kibana-image:8.10.1
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - name: Install Oracle CLI
+        run: |
+          curl -Lo oci-cli.zip https://github.com/oracle/oci-cli/releases/latest/download/oci-cli.zip
+          unzip oci-cli.zip -d ~/oci-cli
+          sudo ~/oci-cli/bin/oci-cli install
+
+      - name: Configure Oracle CLI
+        env:
+          ORACLE_CLI_CONFIG: ${{ secrets.ORACLE_CLI_CONFIG }}
+        run: |
+          mkdir -p ~/.oci
+          echo "${ORACLE_CLI_CONFIG}" > ~/.oci/config
+
+      - name: Deploy to Oracle Container Engine for Kubernetes (OKE)
+        run: |
+          oci ce cluster create --name ${{ secrets.CLUSTER_NAME }} \
+            --compartment-id ${{ secrets.COMPARTMENT_ID }} \
+            --vcn-id ${{ secrets.VCN_ID }} \
+            --kubernetes-version "v1.24.10" --wait-for-state ACTIVE
+
+          # Configure kubectl
+          oci ce cluster create-kubeconfig --cluster-id ${{ secrets.CLUSTER_ID }} --file $HOME/.kube/config --region ${{ secrets.REGION }} --overwrite
+
+          kubectl create secret docker-registry ocr-registry-secret \
+            --docker-server=${OCR_REGION} \
+            --docker-username=${{ secrets.ORACLE_USERNAME }} \
+            --docker-password=${{ secrets.ORACLE_PASSWORD }} \
+            --docker-email=${{ secrets.ORACLE_EMAIL }}
+
+          # Deploy Elastic
+          kubectl apply -f - <<EOF
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: elasticsearch
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: elasticsearch
+            template:
+              metadata:
+                labels:
+                  app: elasticsearch
+              spec:
+                containers:
+                - name: elasticsearch
+                  image: ${OCR_REGION}/${{ secrets.ORACLE_NAMESPACE }}/elastic-image:8.10.1
+                  ports:
+                  - containerPort: 9200
+                  env:
+                  - name: discovery.type
+                    value: single-node
+                  - name: xpack.security.enabled
+                    value: "false"
+          EOF
+
+          # Deploy Kibana
+          kubectl apply -f - <<EOF
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: kibana
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: kibana
+            template:
+              metadata:
+                labels:
+                  app: kibana
+              spec:
+                containers:
+                - name: kibana
+                  image: ${OCR_REGION}/${{ secrets.ORACLE_NAMESPACE }}/kibana-image:8.10.1
+                  ports:
+                  - containerPort: 5601
+                  env:
+                  - name: ELASTICSEARCH_HOSTS
+                    value: http://elasticsearch:9200
+          EOF

@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { createClient } = require('redis');
-const logger = require('./logger');
+const logger = require('./winstonLogger');
 
 const redisPassword = process.env.REDIS_PASSWORD;
 const redisHost = 'redis-18561.c253.us-central1-1.gce.redns.redis-cloud.com';

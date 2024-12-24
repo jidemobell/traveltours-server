@@ -59,7 +59,7 @@ jobs:
           #   --username ${{ secrets.GHCR_USERNAME }} \
           #   --password ${{ secrets.GHCR_TOKEN }}
 
-          ibmcloud ce application update --name "tours-elk" \
+          ibmcloud ce application update --name "tours-elastic" \
             --image ghcr.io/${{ secrets.GHCR_USERNAME }}/elastic-image:8.10.1 \
             --registry-secret ghcr-registry-secret \
             --cpu 1 \
@@ -67,19 +67,24 @@ jobs:
             --env discovery.type=single-node \
             --env xpack.security.enabled=false \
             --port 9200 \
+            || \
+          ibmcloud ce application create --name "tours-elastic" \
+            --image ghcr.io/${{ secrets.GHCR_USERNAME }}/elastic-image:8.10.1 \
+            --registry-secret ghcr-registry-secret \
+            --cpu 1 \
+            --memory 4G \
+            --env discovery.type=single-node \
+            --env xpack.security.enabled=false \
+            --port 9200 
+
+
+            ibmcloud ce application update --name "tours-kibana" \
             --image ghcr.io/${{ secrets.GHCR_USERNAME }}/kibana-image:8.10.1 \
             --registry-secret ghcr-registry-secret \
-            --cpu 1 --memory 2G --env ELASTICSEARCH_HOSTS=http://elastic-app:9200 \
+            --cpu 1 --memory 2G --env ELASTICSEARCH_HOSTS=http://tours-elastic:9200 \
             --port 5601 || \
-          ibmcloud ce application create --name "tours-elk" \
-            --image ghcr.io/${{ secrets.GHCR_USERNAME }}/elastic-image:8.10.1 \
-            --registry-secret ghcr-registry-secret \
-            --cpu 1 \
-            --memory 4G \
-            --env discovery.type=single-node \
-            --env xpack.security.enabled=false \
-            --port 9200 \
+          ibmcloud ce application create --name "tours-kibana" \
             --image ghcr.io/${{ secrets.GHCR_USERNAME }}/kibana-image:8.10.1 \
             --registry-secret ghcr-registry-secret \
-            --cpu 1 --memory 2G --env ELASTICSEARCH_HOSTS=http://elastic-app:9200 \
+            --cpu 1 --memory 2G --env ELASTICSEARCH_HOSTS=http://tours-elastic:9200 \
             --port 5601

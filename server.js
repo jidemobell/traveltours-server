@@ -2,24 +2,27 @@ const express = require('express');
 const { graphqlHTTP } = require('express-graphql');
 const { buildSchema } = require('graphql');
 const getClient = require('./utils');
-const logger = require('./logger');
-const pinoHttp = require('pino-http');
+// const logger = require('./logger');
+const logger = require('./winstonLogger');
+// const pinoHttp = require('pino-http');
+
+// const ecsFormat = require('@elastic/ecs-pino-format');
 // const { default: PinoHttp } = require('pino-http');
 const knex = require('knex')(require('./knexfile').development);
 
-const loggerHTTP =  pinoHttp({ 
-  level: process.env.LOG_LEVEL,
-  customLogLevel: (req, res, err) => {
-    if (err) {
-      return 'error'; // Log errors only at 'error' level
-    }
-    return 'info'; // Default for other requests
-  },
-  serializers: {
-    req: () => undefined, // Exclude `req` from logs
-    res: () => undefined, // Exclude `res` from logs
-  }, 
-})
+// const loggerHTTP =  pinoHttp({ 
+//   level: process.env.LOG_LEVEL,
+//   customLogLevel: (req, res, err) => {
+//     if (err) {
+//       return 'error'; // Log errors only at 'error' level
+//     }
+//     return 'info'; // Default for other requests
+//   },
+//   serializers: {
+//     req: () => undefined, // Exclude `req` from logs
+//     res: () => undefined, // Exclude `res` from logs
+//   }, 
+// })
 
 
 
@@ -120,7 +123,7 @@ const root = {
 
 const app = express();
 
-app.use(loggerHTTP)
+// app.use(loggerHTTP)
 
 // app.use('/graphql', graphqlHTTP({
 //   schema: schema,
@@ -156,9 +159,9 @@ app.use('/graphql', (req, res, next) => {
 process.on('SIGINT', async () => {
   if (client) {
     await client.disconnect();
-    logger.fatal('Redis client disconnected on system termination');
+    logger.info('Redis client disconnected on system termination');
     process.exit(0);
   }
 });
 
-app.listen(4000, () => logger.warn('GraphQL server running on ibm cloud'));
+app.listen(4000, () => logger.info('GraphQL server running on ibm cloud'));
