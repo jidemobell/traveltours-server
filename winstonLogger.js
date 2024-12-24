@@ -3,16 +3,6 @@ const { ElasticsearchTransport } = require('winston-elasticsearch');
 const { axios } = require("axios");
 const { Client } = require('@elastic/elasticsearch');
 
-
-// const elasticSearchTransport = new transports.Stream({
-//   stream: {
-//     write: (info) => {
-//       console.log('Data inserted into Elasticsearch:', info);
-//       axios.post('http://34.57.149.149:9200', { message });
-//     }
-//   }
-// })
-
 // Configure Elasticsearch client
 const esClient = new Client({
   node: 'http://34.57.149.149:9200', // Update with your Elasticsearch URL
