@@ -3,7 +3,7 @@ const { graphqlHTTP } = require('express-graphql');
 const { buildSchema } = require('graphql');
 const getClient = require('./utils');
 // const logger = require('./logger');
-const logger = require('./winstonLogger');
+// const logger = require('./winstonLogger');
 // const pinoHttp = require('pino-http');
 
 // const ecsFormat = require('@elastic/ecs-pino-format');
@@ -84,7 +84,7 @@ const root = {
         EX: 604800 // 1 week
       });
     } catch (error) {
-      logger.error("error at all packages: " + error)
+      console.error("error at all packages: " + error)
       throw error
     }
 
@@ -134,7 +134,7 @@ const app = express();
 app.use('/graphql', (req, res, next) => {
   const { query, variables, operationName } = req.body || {};
 
-  logger.info({
+  console.info({
     query,
     variables,
     operationName,
@@ -145,7 +145,7 @@ app.use('/graphql', (req, res, next) => {
     rootValue: root,
     graphiql: true,
     customFormatErrorFn: (error) => {
-      logger.error({
+      console.error({
         message: error.message,
         locations: error.locations,
         path: error.path,
@@ -159,9 +159,9 @@ app.use('/graphql', (req, res, next) => {
 process.on('SIGINT', async () => {
   if (client) {
     await client.disconnect();
-    logger.info('Redis client disconnected on system termination');
+    console.info('Redis client disconnected on system termination');
     process.exit(0);
   }
 });
 
-app.listen(4000, () => logger.info('GraphQL server running on ibm cloud'));
+app.listen(4000, () => console.info('GraphQL server running on ibm cloud'));

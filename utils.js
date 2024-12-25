@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { createClient } = require('redis');
-const logger = require('./winstonLogger');
+// const logger = require('./winstonLogger');
 
 const redisPassword = process.env.REDIS_PASSWORD;
 const redisHost = 'redis-18561.c253.us-central1-1.gce.redns.redis-cloud.com';
@@ -16,11 +16,11 @@ const getClient = async () => {
       });
       await client.connect();
     }
-    logger.info('Connected to Redis')
+    console.info('Connected to Redis')
     return client
     
   } catch (error) {
-    logger.error("error from redis:", error)
+    console.error("error from redis:", error)
     throw error
   }
 }
