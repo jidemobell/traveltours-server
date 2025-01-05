@@ -1,0 +1,31 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: sample-pipeline
+  namespace: your-namespace
+spec:
+  tasks:
+    - name: clone-repo
+      taskRef:
+        name: git-clone
+      params:
+        - name: url
+          value: "https://github.com/your-repo.git"
+        - name: revision
+          value: "main"
+    - name: build
+      runAfter:
+        - clone-repo
+      taskRef:
+        name: buildah
+      params:
+        - name: IMAGE
+          value: "quay.io/your-image:latest"
+    - name: deploy
+      runAfter:
+        - build
+      taskRef:
+        name: apply-manifests
+      params:
+        - name: manifests
+          value: "k8s/deployment.yaml"

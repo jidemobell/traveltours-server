@@ -1,0 +1,16 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: pipeline-trigger-template
+spec:
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: sample-pipeline-run-
+      spec:
+        pipelineRef:
+          name: sample-pipeline
+        params:
+          - name: IMAGE
+            value: "quay.io/your-image:latest"
