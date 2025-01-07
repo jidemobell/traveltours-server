@@ -1,4 +1,4 @@
-name: Deploy unalone server to IBM Cloud Code Engine
+name: Deploy travelserver server to IBM Cloud Code Engine
 
 # on:
 #   push:
