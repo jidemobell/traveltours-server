@@ -1,0 +1,59 @@
+name: Deploy unalone server to IBM Cloud Code Engine
+
+# on:
+#   push:
+#     branches:
+#       - main  
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout the code
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    # login to GHCR registry
+    - name: Log in to GHCR
+      run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+
+    # Build the container
+    - name: Build and tag Docker image
+      run: |
+        docker build -t "ghcr.io/${{ secrets.GHCR_USERNAME}}/${{ secrets.IMAGE_NAME }}" .
+
+    - name: Push to GHCR
+      run: |
+          docker push ghcr.io/${{ secrets.GHCR_USERNAME }}/${{ secrets.IMAGE_NAME }}
+
+    # Log in to IBM Cloud
+    - name: Log in to IBM Cloud
+      run: |
+        curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
+        ibmcloud config --check-version=false
+        ibmcloud login --apikey "${{ secrets.IBM_CLOUD_API_KEY }}" -r "${{ secrets.IBM_REGION }}"
+    
+    # install ibm dependencies
+    - name: install ibm dependencies
+      run: |
+       ibmcloud plugin install container-registry
+       ibmcloud plugin install code-engine
+
+    - name: Deploy to IBM Cloud Code Engine
+      run: |
+        ibmcloud target -c ${{ secrets.ACCOUNT_ID }} -r ${{ secrets.REGION_NAME }} -g Default
+        ibmcloud ce project select --name ${{ secrets.CODE_ENGINE_PROJECT }} --quiet
+
+        ibmcloud ce application update --name "tourstravelserver" --registry-secret ghcr-secret \
+        --image "ghcr.io/${{ secrets.GHCR_USERNAME }}/${{ secrets.IMAGE_NAME }}" \
+        --port 4000 \
+        --env REDIS_PASSWORD=${{secrets.REDIS_PASSWORD}} --env LOG_LEVEL=${{ secrets.LOG_LEVEL }} \
+        --env ELASTIC_SEARCH_HOST=${{ secrets.ELASTIC_SEARCH_HOST }} || \
+        ibmcloud ce application create --name "tourstravelserver" --registry-secret ghcr-secret \
+        --image "ghcr.io/${{ secrets.GHCR_USERNAME }}/${{ secrets.IMAGE_NAME }}" \
+        --port 4000 \
+        --env REDIS_PASSWORD=${{secrets.REDIS_PASSWORD}} --env LOG_LEVEL=${{ secrets.LOG_LEVEL }} \
+        --env ELASTIC_SEARCH_HOST=${{ secrets.ELASTIC_SEARCH_HOST }} 
